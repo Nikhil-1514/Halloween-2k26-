@@ -1,0 +1,51 @@
+/* SpiderPortal.css */
+.spider-portal {
+  width: 120px;
+  height: 120px;
+  margin: 2rem auto;
+  cursor: pointer;
+  position: relative;
+  perspective: 600px;
+}
+.spider-body {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 30%, var(--clr-purple-lt), var(--clr-purple));
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--clr-purple-lt), inset 0 0 10px var(--clr-black);
+  position: relative;
+  overflow: hidden;
+}
+.spider-eyes {
+  position: absolute;
+  top: 30%;
+  left: 25%;
+  width: 50%;
+  height: 20%;
+  background: var(--clr-moon);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--clr-moon), 0 0 4px var(--clr-moon);
+}
+.spider-legs {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 50%;
+  background: var(--clr-black);
+  transform-origin: top;
+  animation: leg-sway 2s infinite ease-in-out;
+}
+@keyframes leg-sway {
+  0%, 100% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+}
+/* Animations */
+.twitch { animation: twitch 0.3s; }
+@keyframes twitch { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(-5deg); } 75% { transform: rotate(3deg); } 100% { transform: rotate(0deg); } }
+.jump { animation: jump 0.6s ease-out; }
+@keyframes jump { 0% { transform: translateY(0); } 50% { transform: translateY(-30px); } 100% { transform: translateY(0); } }
+.blink { animation: blink 0.2s; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+.disappear { animation: disappear 0.5s forwards; }
+@keyframes disappear { to { opacity: 0; transform: scale(0.5); } }
