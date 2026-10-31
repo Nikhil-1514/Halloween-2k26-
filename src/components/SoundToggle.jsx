@@ -1,29 +1,28 @@
-import { useState, useEffect } from "react";
+import { audioManager } from '../utils/audio';
+import './SoundToggle.css';
 
-export default function SoundToggle({ audioEnabled, onToggle, interacted }) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 800);
-    return () => clearTimeout(timer);
-  }, []);
+const SoundToggle = ({ enabled, onToggle }) => {
+  const handleClick = () => {
+    const next = !enabled;
+    onToggle(next);
+    audioManager.setEnabled(next);
+    if (next) {
+      audioManager.playClick();
+      audioManager.startAmbience();
+    }
+  };
 
   return (
     <button
-      className={`sound-toggle ${visible ? "sound-toggle--visible" : ""}`}
-      onClick={onToggle}
-      aria-label={audioEnabled ? "Disable spooky sounds" : "Enable spooky sounds"}
-      title={audioEnabled ? "Sound ON" : "Sound OFF"}
-      type="button"
+      id="sound-toggle"
+      className="sound-toggle"
+      onClick={handleClick}
+      aria-label={enabled ? 'Mute sound' : 'Enable sound'}
+      title={enabled ? 'Sound on' : 'Sound off'}
     >
-      {audioEnabled ? (
-        <span aria-hidden="true">🔊</span>
-      ) : (
-        <span aria-hidden="true">🔇</span>
-      )}
-      <span className="sound-toggle__label">
-        {audioEnabled ? "SOUND ON" : "SOUND OFF"}
-      </span>
+      {enabled ? '🔊' : '🔇'}
     </button>
   );
-}
+};
+
+export default SoundToggle;

@@ -1,0 +1,164 @@
+.survivor-scene {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, #1a1200 0%, #080808 65%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  animation: fadeIn 1.5s ease forwards;
+  overflow: hidden;
+  transition: opacity 0.8s ease;
+}
+
+.survivor-scene.exiting { opacity: 0; }
+
+/* Particles */
+.survivor-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.survivor-particle {
+  position: absolute;
+  bottom: -10px;
+  background: var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleDrift linear infinite;
+}
+
+/* Gold glow */
+.survivor-glow {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(212,168,67,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  animation: breathe 6s ease-in-out infinite;
+}
+
+/* Content */
+.survivor-content {
+  text-align: center;
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+  z-index: 2;
+}
+
+.survivor-crown {
+  font-size: 4rem;
+  animation: sealAppear 1.2s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+  filter: drop-shadow(0 0 20px rgba(212,168,67,0.6));
+}
+
+.survivor-header {
+  animation: revealUp 1.4s ease forwards;
+}
+
+.survivor-status {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 0.5rem;
+}
+
+.survivor-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 5vw, 2rem);
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  animation: goldGlow 4s ease-in-out infinite;
+}
+
+.survivor-name {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  color: var(--ash);
+  text-transform: uppercase;
+  animation: revealUp 1.2s ease forwards;
+}
+
+.survivor-card {
+  background: rgba(212,168,67,0.04);
+  border: 1px solid rgba(212,168,67,0.2);
+  padding: 1.8rem 2rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  animation: scaleIn 1.2s ease forwards;
+}
+
+.survivor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(212,168,67,0.1);
+}
+
+.survivor-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.survivor-label {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  flex-shrink: 0;
+}
+
+.survivor-value {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--ash);
+  text-align: right;
+}
+
+.survivor-value-gold {
+  color: var(--gold);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+}
+
+.survivor-description {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--fog);
+  line-height: 1.7;
+  animation: fadeIn 1.2s ease 0.3s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  max-width: 420px;
+}
+
+.survivor-btn {
+  animation: revealUp 1.2s ease 0.5s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+@media (max-width: 480px) {
+  .survivor-card { padding: 1.4rem 1.2rem; }
+  .survivor-row { flex-direction: column; gap: 0.2rem; }
+  .survivor-value { text-align: left; }
+}

@@ -1,230 +1,288 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import HauntedBackground from "./components/HauntedBackground";
-import IntroScreen from "./components/IntroScreen";
-import LandingScreen from "./components/LandingScreen";
-import TreatScreen from "./components/TreatScreen";
-import TrickScreen from "./components/TrickScreen";
-import FinalScreen from "./components/FinalScreen";
-import SoundToggle from "./components/SoundToggle";
-import EasterEggs, { useMoonEasterEgg, usePumpkinEasterEgg } from "./components/EasterEggs";
-// spookyMessages used via EasterEggs hooks only
+import { useState, useCallback, useRef } from 'react';
+import { SCENES, INITIAL_STATE } from './state/gameState';
+import { audioManager }          from './utils/audio';
 
-// ── App States ─────────────────────────────────────────────────
-// INTRO → LANDING → TREAT | TRICK → FINAL
-const STATES = {
-  INTRO: "INTRO",
-  LANDING: "LANDING",
-  TREAT: "TREAT",
-  TRICK: "TRICK",
-  FINAL: "FINAL",
-};
+// ── Existing scenes (preserved) ─────────────────────────────────
+import Opening      from './scenes/Opening';
+import GreetingCard from './scenes/GreetingCard';
+import ChoiceScreen from './scenes/ChoiceScreen';
+import TreatRoute   from './scenes/TreatRoute';
+import TrickIntro   from './scenes/TrickIntro';
+import GiveUp       from './scenes/GiveUp';
+import FinalExit    from './scenes/FinalExit';
 
-// ── Ambient audio via Web Audio API (no external files needed) ─
-function createAmbientOscillator(ctx) {
-  const osc = ctx.createOscillator();
-  const gainNode = ctx.createGain();
-  osc.type = "sawtooth";
-  osc.frequency.setValueAtTime(55, ctx.currentTime);
-  osc.frequency.linearRampToValueAtTime(58, ctx.currentTime + 6);
-  osc.frequency.linearRampToValueAtTime(52, ctx.currentTime + 12);
-  gainNode.gain.setValueAtTime(0, ctx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 1.5);
-  osc.connect(gainNode);
-  gainNode.connect(ctx.destination);
-  osc.start();
-  return { osc, gainNode };
-}
+// ── Upgraded level system ─────────────────────────────────────
+import LevelShell   from './levels/LevelShell';      // Levels 1–3
+import Level4Arcade from './levels/Level4Arcade';    // Level 4 full arcade
+import Level5       from './scenes/Level5';          // Level 5 final nightmare
 
-// ── Safe localStorage ──────────────────────────────────────────
-const safeLS = {
-  get: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
-  set: (key, val) => { try { localStorage.setItem(key, val); } catch {} },
-};
+// ── New ending scenes ─────────────────────────────────────────
+import Survivor      from './scenes/Survivor';
+import Certificate   from './scenes/Certificate';
+import FinalGreeting from './scenes/FinalGreeting';
 
-// ── Detect reduced motion ──────────────────────────────────────
-const prefersReducedMotion = () =>
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+// ── Global components ─────────────────────────────────────────
+import AnomalousSpider from './components/AnomalousSpider';
+import SoundToggle     from './components/SoundToggle';
+
+import './App.css';
+
+const TRANSITION = 700;
 
 export default function App() {
-  const [appState, setAppState] = useState(() =>
-    safeLS.get("hh_seen") === "1" ? STATES.LANDING : STATES.INTRO
-  );
-  const [finalOutcome, setFinalOutcome] = useState("treat");
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [moonGlowing, setMoonGlowing] = useState(false);
-  const [toast, setToast] = useState(null); // { msg, type }
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const [reducedMotion] = useState(prefersReducedMotion);
+  const [state, setState]      = useState(INITIAL_STATE);
+  const [transitioning, setTr] = useState(false);
+  const trTimer                = useRef(null);
 
-  const audioCtxRef = useRef(null);
-  const audioNodesRef = useRef(null);
-  const toastTimeoutRef = useRef(null);
+  // ── Navigate ──────────────────────────────────────────────
+  const navigate = useCallback((scene, updates = {}) => {
+    if (transitioning) return;
+    setTr(true);
+    clearTimeout(trTimer.current);
+    trTimer.current = setTimeout(() => {
+      setState(prev => ({ ...prev, scene, ...updates }));
+      setTr(false);
+    }, TRANSITION);
+  }, [transitioning]);
 
-  // ── Toast helper ───────────────────────────────────────────
-  const showToast = useCallback((msg, type = "default") => {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    setToast({ msg, type });
-    toastTimeoutRef.current = setTimeout(() => setToast(null), 3500);
+  // ── Update player profile ─────────────────────────────────
+  const updatePlayer = useCallback((updates) => {
+    setState(prev => ({
+      ...prev,
+      player: { ...prev.player, ...updates },
+    }));
   }, []);
 
-  // ── Easter egg hooks ────────────────────────────────────────
-  const handleMoonClick = useMoonEasterEgg(showToast);
-  const handlePumpkinClick = usePumpkinEasterEgg(showToast);
-
-  // ── Moon glow on click ─────────────────────────────────────
-  const onMoonClick = () => {
-    setMoonGlowing(true);
-    setTimeout(() => setMoonGlowing(false), 1200);
-    handleMoonClick();
-    if (!hasInteracted) setHasInteracted(true);
-  };
-
-  // ── Audio ──────────────────────────────────────────────────
-  const startAudio = useCallback(() => {
-    try {
-      if (!audioCtxRef.current) {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        audioCtxRef.current = ctx;
-        audioNodesRef.current = createAmbientOscillator(ctx);
-      } else if (audioCtxRef.current.state === "suspended") {
-        audioCtxRef.current.resume();
-      }
-    } catch (err) {
-      console.warn("Audio unavailable:", err);
-    }
+  // ── Update arcade state ───────────────────────────────────
+  const updateArcade = useCallback((updates) => {
+    setState(prev => ({
+      ...prev,
+      arcade: { ...prev.arcade, ...updates },
+    }));
   }, []);
 
-  const stopAudio = useCallback(() => {
-    try {
-      if (audioCtxRef.current && audioCtxRef.current.state === "running") {
-        audioCtxRef.current.suspend();
-      }
-    } catch {}
+  // ── Sound toggle ──────────────────────────────────────────
+  const handleSoundToggle = useCallback((val) => {
+    setState(prev => ({ ...prev, soundEnabled: val }));
+    audioManager.setEnabled(val);
   }, []);
 
-  const toggleAudio = () => {
-    if (!hasInteracted) setHasInteracted(true);
-    if (audioEnabled) {
-      stopAudio();
-      setAudioEnabled(false);
+  // ── Full restart ──────────────────────────────────────────
+  const handleRestart = useCallback(() => {
+    clearTimeout(trTimer.current);
+    setTr(false);
+    audioManager.setEnabled(false);
+    setState(INITIAL_STATE);
+  }, []);
+
+  const { scene, route, player, progress, arcade, soundEnabled } = state;
+  const currentLevel = progress.currentLevel;
+
+  // ── Level 1–3 continue handler ────────────────────────────
+  const handleLevelContinue = useCallback(() => {
+    const next = currentLevel + 1;
+    if (next <= 3) {
+      navigate(SCENES.LEVEL, {
+        progress: { ...progress, currentLevel: next, highestLevel: next },
+      });
     } else {
-      startAudio();
-      setAudioEnabled(true);
+      // After Level 3 → Level 4 Arcade
+      navigate(SCENES.LEVEL4_ARCADE, {
+        progress: { ...progress, currentLevel: 4, highestLevel: 4 },
+      });
     }
+  }, [currentLevel, navigate, progress]);
+
+  // ── Level 1–3 give up ─────────────────────────────────────
+  const handleGiveUp = useCallback((level) => {
+    navigate(SCENES.GIVE_UP, {
+      progress: { ...progress, highestLevel: level },
+    });
+  }, [navigate, progress]);
+
+  // ── Level 4 complete → Level 5 ───────────────────────────
+  const handleArcadeComplete = useCallback(() => {
+    navigate(SCENES.LEVEL5, {
+      progress: { ...progress, currentLevel: 5, highestLevel: 5 },
+    });
+  }, [navigate, progress]);
+
+  // ── Level 4 give up (mid-arcade) ─────────────────────────
+  const handleArcadeGiveUp = useCallback(() => {
+    navigate(SCENES.GIVE_UP, {
+      progress: { ...progress, highestLevel: 4 },
+    });
+  }, [navigate, progress]);
+
+  // ── Level 5 complete → Survivor ──────────────────────────
+  const handleLevel5Complete = useCallback(() => {
+    navigate(SCENES.SURVIVOR, {
+      progress: { currentLevel: 5, highestLevel: 5, completed: true },
+      timestamp: new Date().toISOString(),
+    });
+  }, [navigate]);
+
+  // ── Spider visibility ─────────────────────────────────────
+  const spiderVisible = route === 'trick' && [
+    SCENES.LEVEL,
+    SCENES.LEVEL4_ARCADE,
+    SCENES.LEVEL5,
+    SCENES.GIVE_UP,
+    SCENES.SURVIVOR,
+  ].includes(scene);
+  const spiderIntensity = Math.min(5, currentLevel || 1);
+
+  // ── Treat route: forward participant data ─────────────────
+  // TreatRoute still uses 'participant' internally; we bridge through player
+  const participantBridge = {
+    name:          player.name,
+    chocolate:     player.chocolate,
+    quantity:      player.quantity,
+    signature:     player.signature,
+    agreedPromise: player.agreedPromise,
   };
+  const updateParticipantBridge = useCallback((updates) => {
+    updatePlayer(updates);
+  }, [updatePlayer]);
 
-  // ── State transitions ──────────────────────────────────────
-  const goTo = (state) => {
-    if (!hasInteracted) setHasInteracted(true);
-    setAppState(state);
-  };
-
-  const handleIntroComplete = () => {
-    safeLS.set("hh_seen", "1");
-    goTo(STATES.LANDING);
-  };
-
-  const handleTreat = () => goTo(STATES.TREAT);
-  const handleTrick = () => goTo(STATES.TRICK);
-
-  const handleTreatFinal = () => {
-    setFinalOutcome("treat");
-    goTo(STATES.FINAL);
-  };
-
-  const handleSurvived = () => {
-    setFinalOutcome("survived");
-    goTo(STATES.FINAL);
-  };
-
-  const handleFailed = () => {
-    setFinalOutcome("failed");
-    goTo(STATES.FINAL);
-  };
-
-  const handleReturnToLanding = () => goTo(STATES.LANDING);
-
-  const handlePlayAgain = () => {
-    safeLS.set("hh_seen", "1");
-    goTo(STATES.LANDING);
-  };
-
-  const handleClosePortal = () => {
-    stopAudio();
-    // App fades to black (CSS handles it), then just stays dark
-  };
-
-  // ── Cleanup audio on unmount ───────────────────────────────
-  useEffect(() => {
-    return () => {
-      try { audioCtxRef.current?.close(); } catch {}
-    };
-  }, []);
+  // ── GiveUp uses old 'participant' shape ───────────────────
+  const participantForGiveUp = { name: player.name };
 
   return (
-    <div className={`app${reducedMotion ? " reduced-motion" : ""}`}>
-      {/* Animated spooky background — always present */}
-      <HauntedBackground onMoonClick={onMoonClick} moonGlowing={moonGlowing} />
+    <div className="app" aria-label="The Halloween Challenge">
+      <SoundToggle enabled={soundEnabled} onToggle={handleSoundToggle} />
+      <AnomalousSpider visible={spiderVisible} intensity={spiderIntensity} />
 
-      {/* Secret pumpkin — hidden in bottom-right corner */}
-      <button
-        className="secret-pumpkin"
-        onClick={handlePumpkinClick}
-        aria-label="Secret pumpkin — Easter egg"
-        tabIndex={-1}
-      >
-        🎃
-      </button>
-
-      {/* Easter egg: keyboard sequence */}
-      <EasterEggs onToast={showToast} />
-
-      {/* Sound toggle */}
-      <SoundToggle audioEnabled={audioEnabled} onToggle={toggleAudio} interacted={hasInteracted} />
-
-      {/* Toast notification */}
-      {toast && (
-        <div
-          className={`toast toast--${toast.type}`}
-          role="status"
-          aria-live="polite"
-          key={toast.msg}
-        >
-          {toast.msg}
-        </div>
+      {/* ── Opening ── */}
+      {scene === SCENES.OPENING && (
+        <Opening
+          soundEnabled={soundEnabled}
+          onComplete={() => navigate(SCENES.GREETING_CARD)}
+        />
       )}
 
-      {/* ── Screens ── */}
-      <main className="screen-container">
-        {appState === STATES.INTRO && (
-          <IntroScreen onComplete={handleIntroComplete} />
-        )}
+      {/* ── Greeting Card ── */}
+      {scene === SCENES.GREETING_CARD && (
+        <GreetingCard
+          soundEnabled={soundEnabled}
+          onComplete={() => navigate(SCENES.CHOICE)}
+        />
+      )}
 
-        {appState === STATES.LANDING && (
-          <LandingScreen onTreat={handleTreat} onTrick={handleTrick} />
-        )}
+      {/* ── Choice ── */}
+      {scene === SCENES.CHOICE && (
+        <ChoiceScreen
+          soundEnabled={soundEnabled}
+          onChooseTreat={() => navigate(SCENES.TREAT_INTRO, { route: 'treat' })}
+          onChooseTrick={() => navigate(SCENES.TRICK_INTRO, { route: 'trick' })}
+        />
+      )}
 
-        {appState === STATES.TREAT && (
-          <TreatScreen onReturn={handleReturnToLanding} onFinal={handleTreatFinal} />
-        )}
+      {/* ── Treat Route (unchanged) ── */}
+      {(scene === SCENES.TREAT_INTRO ||
+        scene === SCENES.TREAT_PROMISE ||
+        scene === SCENES.TREAT_SEALED) && (
+        <TreatRoute
+          soundEnabled={soundEnabled}
+          participant={participantBridge}
+          onUpdateParticipant={updateParticipantBridge}
+          onComplete={() => navigate(SCENES.FINAL_EXIT, {
+            progress: { currentLevel: 0, highestLevel: 0, completed: true },
+            timestamp: new Date().toISOString(),
+          })}
+        />
+      )}
 
-        {appState === STATES.TRICK && (
-          <TrickScreen
-            onSurvived={handleSurvived}
-            onFailed={handleFailed}
-            onReturn={handleReturnToLanding}
-            reducedMotion={reducedMotion}
-          />
-        )}
+      {/* ── Trick Intro ── */}
+      {scene === SCENES.TRICK_INTRO && (
+        <TrickIntro
+          soundEnabled={soundEnabled}
+          onEnter={() => navigate(SCENES.LEVEL, {
+            progress: { currentLevel: 1, highestLevel: 1, completed: false },
+          })}
+        />
+      )}
 
-        {appState === STATES.FINAL && (
-          <FinalScreen
-            outcome={finalOutcome}
-            onPlayAgain={handlePlayAgain}
-            onClose={handleClosePortal}
-          />
-        )}
-      </main>
+      {/* ── Levels 1–3 ── */}
+      {scene === SCENES.LEVEL && (
+        <LevelShell
+          key={`level-${currentLevel}`}
+          levelNumber={currentLevel}
+          player={player}
+          soundEnabled={soundEnabled}
+          onUpdatePlayer={updatePlayer}
+          onContinue={handleLevelContinue}
+          onGiveUp={handleGiveUp}
+        />
+      )}
+
+      {/* ── Level 4 Arcade ── */}
+      {scene === SCENES.LEVEL4_ARCADE && (
+        <Level4Arcade
+          arcade={arcade}
+          player={player}
+          soundEnabled={soundEnabled}
+          onUpdateArcade={updateArcade}
+          onUpdatePlayer={updatePlayer}
+          onComplete={handleArcadeComplete}
+          onFail={handleArcadeGiveUp}
+          onGiveUp={handleArcadeGiveUp}
+        />
+      )}
+
+      {/* ── Level 5 ── */}
+      {scene === SCENES.LEVEL5 && (
+        <Level5
+          player={player}
+          soundEnabled={soundEnabled}
+          onUpdatePlayer={updatePlayer}
+          onComplete={handleLevel5Complete}
+        />
+      )}
+
+      {/* ── Give Up ── */}
+      {scene === SCENES.GIVE_UP && (
+        <GiveUp
+          level={progress.highestLevel}
+          participant={participantForGiveUp}
+          onDone={() => navigate(SCENES.FINAL_EXIT)}
+        />
+      )}
+
+      {/* ── Ultimate Survivor ── */}
+      {scene === SCENES.SURVIVOR && (
+        <Survivor
+          participant={participantForGiveUp}
+          soundEnabled={soundEnabled}
+          onDone={() => navigate(SCENES.CERTIFICATE)}
+        />
+      )}
+
+      {/* ── Certificate ── */}
+      {scene === SCENES.CERTIFICATE && (
+        <Certificate
+          player={player}
+          arcade={arcade}
+          onDone={() => navigate(SCENES.FINAL_GREETING)}
+        />
+      )}
+
+      {/* ── Final Greeting ── */}
+      {scene === SCENES.FINAL_GREETING && (
+        <FinalGreeting
+          player={player}
+          onExit={handleRestart}
+        />
+      )}
+
+      {/* ── Final Exit (treat + give-up) ── */}
+      {scene === SCENES.FINAL_EXIT && (
+        <FinalExit
+          participant={participantForGiveUp}
+          route={route}
+          onRestart={handleRestart}
+        />
+      )}
     </div>
   );
 }

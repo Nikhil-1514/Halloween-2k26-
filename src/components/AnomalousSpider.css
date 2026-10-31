@@ -1,0 +1,27 @@
+.spider-wrapper {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  transition: left 3.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+              top  3.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+              opacity 0.4s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.spider-wrapper.twitching .spider-svg {
+  animation: spiderTwitch 0.5s ease-in-out;
+}
+
+.spider-wrapper.dimmed {
+  opacity: 0;
+}
+
+.spider-svg {
+  display: block;
+  opacity: 0.92;
+}
+
+@media (max-width: 480px) {
+  .spider-wrapper { display: none; }
+}

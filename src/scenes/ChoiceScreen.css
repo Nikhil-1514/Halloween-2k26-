@@ -1,0 +1,198 @@
+.choice-scene {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 20%, #140c0c 0%, #090909 55%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  animation: fadeIn 1.2s ease forwards;
+  overflow: hidden;
+  gap: 2.5rem;
+}
+
+.choice-scene.exiting-treat,
+.choice-scene.exiting-trick {
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.choice-fog {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(to top, rgba(8,4,4,0.5) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Header */
+.choice-header {
+  text-align: center;
+  animation: revealDown 1.4s ease forwards;
+}
+
+.choice-eyebrow {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  color: var(--fog);
+  text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+
+.choice-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  color: var(--ash);
+  letter-spacing: 0.06em;
+}
+
+.choice-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--ember);
+  margin: 1.2rem auto 0;
+  opacity: 0.5;
+}
+
+/* Cards container */
+.choice-cards {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  animation: scaleIn 1.4s ease 0.3s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Individual card */
+.choice-card {
+  position: relative;
+  width: clamp(140px, 38vw, 200px);
+  min-height: 220px;
+  background: transparent;
+  border: 1px solid var(--dim);
+  cursor: pointer;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  transition: border-color 0.4s ease,
+              background 0.4s ease,
+              transform 0.3s ease,
+              box-shadow 0.4s ease;
+  font-family: inherit;
+  text-align: center;
+}
+
+/* Treat card */
+.choice-treat {
+  border-color: var(--ember-dim);
+}
+.choice-treat.hovered,
+.choice-treat:hover {
+  border-color: var(--ember);
+  background: rgba(200,75,17,0.06);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(200,75,17,0.12);
+}
+
+/* Trick card */
+.choice-trick {
+  border-color: #2a0d2a;
+}
+.choice-trick.hovered,
+.choice-trick:hover {
+  border-color: #6a2a6a;
+  background: rgba(74,25,66,0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(74,25,66,0.15);
+}
+
+.choice-icon {
+  font-size: 2.2rem;
+  display: block;
+  line-height: 1;
+  filter: grayscale(0.2);
+}
+
+.choice-card-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.choice-treat .choice-card-title { color: var(--ember); }
+.choice-trick .choice-card-title { color: #a060a0; }
+
+.choice-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--fog);
+  line-height: 1.5;
+}
+
+.choice-card-hint {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-top: auto;
+}
+
+/* Separator */
+.choice-separator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  height: 80px;
+}
+
+.sep-line {
+  width: 1px;
+  flex: 1;
+  background: var(--dim);
+}
+
+.sep-or {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+}
+
+/* Footer */
+.choice-footer {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--dim);
+  text-align: center;
+  animation: fadeIn 1.5s ease 0.8s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .choice-scene { gap: 1.8rem; }
+  .choice-separator { display: none; }
+  .choice-cards { gap: 1rem; }
+  .choice-card { min-height: 180px; padding: 1.5rem 1.2rem; width: clamp(130px, 42vw, 180px); }
+  .choice-icon { font-size: 1.8rem; }
+}
+
+@media (max-width: 360px) {
+  .choice-card { width: 44vw; }
+}

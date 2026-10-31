@@ -1,0 +1,94 @@
+.exit-scene {
+  position: absolute;
+  inset: 0;
+  background: #070707;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  animation: fadeIn 2s ease forwards;
+  overflow: hidden;
+  transition: opacity 0.9s ease;
+}
+
+.exit-scene.exiting { opacity: 0; }
+
+.exit-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(4,2,4,0.8) 100%);
+  pointer-events: none;
+}
+
+.exit-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+  max-width: 420px;
+  z-index: 2;
+}
+
+.exit-date {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--dim);
+  animation: fadeIn 1.5s ease forwards;
+}
+
+.exit-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 5vw, 2rem);
+  color: var(--ash);
+  letter-spacing: 0.06em;
+  animation: revealUp 1.8s ease forwards;
+}
+
+.exit-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  animation: revealUp 1.5s ease 0.3s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.exit-message p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--fog);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.exit-participant {
+  color: var(--dim) !important;
+  font-size: 0.9rem !important;
+}
+
+.exit-divider {
+  width: 35px;
+  height: 1px;
+  background: var(--dim);
+  margin: 0 auto;
+  animation: fadeIn 1.5s ease 0.6s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.exit-footer {
+  font-size: 1.8rem;
+  animation: fadeIn 2s ease forwards;
+  opacity: 0.5;
+}
+
+.exit-restart {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  animation: fadeIn 1.5s ease 0.5s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}

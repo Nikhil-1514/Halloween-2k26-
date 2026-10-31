@@ -1,0 +1,81 @@
+.l5-scene {
+  position: absolute;
+  inset: 0;
+  background: #060606;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  gap: 1.8rem;
+  animation: fadeIn 2s ease forwards;
+  overflow-y: auto;
+  transition: opacity 1.2s ease;
+}
+.l5-scene.exiting { opacity: 0; }
+
+.l5-vignette {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 15%, rgba(4,2,4,0.85) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.l5-tag {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--blood);
+  z-index: 2;
+  animation: fadeIn 2s ease forwards;
+}
+.l5-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  color: var(--ash);
+  letter-spacing: 0.06em;
+  z-index: 2;
+  animation: revealDown 1.5s ease forwards;
+}
+.l5-atmo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+  max-width: 460px;
+  z-index: 2;
+}
+.l5-line {
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  color: var(--fog);
+  line-height: 1.7;
+  font-style: italic;
+  animation: revealUp 1.5s ease forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+.l5-input-block {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  z-index: 2;
+  animation: revealUp 1.2s ease forwards;
+}
+.l5-label { font-size: 0.75rem; }
+.l5-textarea { min-height: 120px; resize: vertical; }
+.l5-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  z-index: 2;
+  animation: fadeIn 1.2s ease 0.3s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+.l5-skip { font-size: 0.68rem; }
